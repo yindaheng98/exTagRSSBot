@@ -1,0 +1,14 @@
+{
+  "name": "extagrss-telegram-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "rss-telegram-bot": "^1.0.3"
+  }
+}
