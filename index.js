@@ -58,6 +58,23 @@ handlerGen('artist', handlerFuncGen('artist:"%s$"'));
 handlerGen('g', handlerFuncGen('group:"%s$"'));
 handlerGen('group', handlerFuncGen('group:"%s$"'));
 
+const schedule = require('node-schedule');
+async function sendUnsubscribe() {
+    const tags = await db.getAllTag();
+    if (tags.length <= 0) return;
+    const tag = tags[Math.floor(Math.random() * tags.length)]; //随机选一个返回
+    const msg = `You have this unsubscribed link:\n${tag}\nPlease select a category to subscribe:`;
+    const inline_keyboards = await catInlineKeyboards(tag);
+    for (let chatId of user.getChatIds()) {
+        bot.sendMessage(chatId, msg, {
+            reply_markup: {
+                inline_keyboard: inline_keyboards
+            }
+        });
+    }
+}
+schedule.scheduleJob(config.unsubscribe_check_cron, sendUnsubscribe);
+
 async function sendSubscribe(msg, category_id, tag) {
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
@@ -79,6 +96,7 @@ async function sendSubscribe(msg, category_id, tag) {
                     inline_keyboard: inline_keyboards
                 }
             });
+            sendUnsubscribe();
             return;
         }
     }
@@ -86,6 +104,7 @@ async function sendSubscribe(msg, category_id, tag) {
     bot.sendMessage(chatId, `Subscribed to ${category_title}: ${tag}`, {
         reply_to_message_id: msgId
     });
+    sendUnsubscribe();
 }
 
 bot.onQuery(/^\/subscribe_eh ([0-9]+) (artist:"[A-Za-z0-9 ]+\$")$/, async (msg, match) => {
