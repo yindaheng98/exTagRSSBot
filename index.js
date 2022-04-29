@@ -82,7 +82,7 @@ async function sendSubscribe(msg, category_id, tag) {
     const category_title = await rss.getCategoryTitle(category_id);
     for (let url_format of config.eh_feed_formats) {
         const feed_url = util.format(url_format, encodeURIComponent(tag))
-        logger.info(`subscribing: ${feed_url}`);
+        logger.info(`Subscribing: ${feed_url}`);
         if (('' + category_id) === await rss.isSubscribed(feed_url)) {
             continue;
         }
