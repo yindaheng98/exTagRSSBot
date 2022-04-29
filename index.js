@@ -39,7 +39,6 @@ function handlerFuncGen(tag_format) {
             return
         }
         let tag_content = match[1];
-        tag_content = tag_content.replace(" ", "+")
         await sendSubscribeTag(msg, match, util.format(tag_format, tag_content))
     }
 }
@@ -55,3 +54,44 @@ handlerGen('a', handlerFuncGen('artist:"%s$"'));
 handlerGen('artist', handlerFuncGen('artist:"%s$"'));
 handlerGen('g', handlerFuncGen('group:"%s$"'));
 handlerGen('group', handlerFuncGen('group:"%s$"'));
+
+async function sendSubscribe(msg, category_id, tag) {
+    const chatId = msg.chat.id;
+    const msgId = msg.message_id;
+    const category_title = await rss.getCategoryTitle(category_id);
+    for (let url_format of config.eh_feed_formats) {
+        const feed_url = util.format(url_format, encodeURIComponent(tag))
+        if (('' + category_id) === await rss.isSubscribed(feed_url)) {
+            continue;
+        }
+        const { ok, err } = await rss.subscribeToFeed(category_id, feed_url);
+        if (!ok) {
+            const inline_keyboards = [[{
+                text: 'Retry it',
+                switch_inline_query_current_chat: `/subscribe_eh ${category_id} ${tag}`
+            }]];
+            bot.sendMessage(chatId, `Cannot subscribed to ${category_title}: ${err}`, {
+                reply_to_message_id: msgId,
+                reply_markup: {
+                    inline_keyboard: inline_keyboards
+                }
+            });
+            return;
+        }
+    }
+    bot.sendMessage(chatId, `Subscribed to ${category_title}: ${tag}`, {
+        reply_to_message_id: msgId
+    });
+}
+
+bot.onQuery(/^\/subscribe_eh ([0-9]+) (artist:"[A-Za-z0-9 ]+\$")$/, async (msg, match) => {
+    const category_id = parseInt(match[1]);
+    const tag = match[2];
+    sendSubscribe(msg, category_id, tag);
+});
+
+bot.onQuery(/^\/subscribe_eh ([0-9]+) (group:"[A-Za-z0-9 ]+\$")$/, async (msg, match) => {
+    const category_id = parseInt(match[1]);
+    const tag = match[2];
+    sendSubscribe(msg, category_id, tag);
+});

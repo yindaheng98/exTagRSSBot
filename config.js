@@ -9,3 +9,5 @@ for (let k in process.env) {
 if (config.eh_feed_formats.length <= 0) {
     config.eh_feed_formats = ["https://rsshub.app/ehentai/tag/%s"];
 }
+
+module.exports = config
