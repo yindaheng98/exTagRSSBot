@@ -1,5 +1,6 @@
-const { bot, rss, user } = require('rss-telegram-bot')
-const config = require('./config')
+const { bot, rss, user } = require('rss-telegram-bot');
+const logger = require('rss-telegram-bot/utils/logger');
+const config = require('./config');
 const db = require('./database');
 var util = require('util');
 
@@ -81,6 +82,7 @@ async function sendSubscribe(msg, category_id, tag) {
     const category_title = await rss.getCategoryTitle(category_id);
     for (let url_format of config.eh_feed_formats) {
         const feed_url = util.format(url_format, encodeURIComponent(tag))
+        logger.info(`subscribing: ${feed_url}`);
         if (('' + category_id) === await rss.isSubscribed(feed_url)) {
             continue;
         }
