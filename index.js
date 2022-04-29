@@ -40,7 +40,7 @@ function handlerFuncGen(tag_format) {
         }
         let tag_content = match[1];
         tag_content = tag_content.replace(" ", "+")
-       await sendSubscribeTag(msg, match, util.format(tag_format, tag_content))
+        await sendSubscribeTag(msg, match, util.format(tag_format, tag_content))
     }
 }
 
