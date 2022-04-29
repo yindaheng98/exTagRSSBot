@@ -1,17 +1,44 @@
-const bot = require('rss-telegram-bot')
+const {bot, rss, user} = require('rss-telegram-bot')
 const config = require('rss-telegram-bot/config')
 var util = require('util');
 
 config.eh_feed_format = process.env.TH_FEED_FORMAT || "https://rsshub.app/ehentai/tag/%s";
 
-async function sendSubscribeTag(msg, match, tag) {
+
+async function catInlineKeyboards(url) {
+    const inline_keyboards = [];
+    const categories = await rss.getCategories();
+    for (let category_id in categories) {
+        const title = categories[category_id];
+        inline_keyboards.push([{
+            text: title,
+            switch_inline_query_current_chat: `/subscribe ${category_id} ${url}`
+        }]);
+    }
+    inline_keyboards.push([{
+        text: 'Cancel it',
+        switch_inline_query_current_chat: `/unparse_eh ${url}`
+    }]);
+    return inline_keyboards
+}
+
+async function sendParseTo(url, msg) {
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
+    bot.sendMessage(chatId, `${url}\nPlease select a category to subscribe:`, {
+        reply_to_message_id: msgId,
+        reply_markup: {
+            inline_keyboard: await catInlineKeyboards(url)
+        }
+    });
+}
+
+function sendSubscribeTag(msg, match, tag) {
     if (match.length <= 0 || match[1] === null || match[1].length <= 0) {
         return
     }
     const feed_url = util.format(config.eh_feed_format, tag);
-    console.log(feed_url);
+    sendParseTo(feed_url, msg);
 }
 
 function handlerFuncGen(tag_format) {
@@ -32,7 +59,7 @@ function handlerGen(tag_prefix, func) {
     bot.onText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)\\$$`), func);
 }
 
-handlerGen('a', handlerFuncGen('artist:"%s$"'));
-handlerGen('artist', handlerFuncGen('artist:"%s$"'));
-handlerGen('g', handlerFuncGen('group:"%s$"'));
-handlerGen('group', handlerFuncGen('group:"%s$"'));
+handlerGen('a', handlerFuncGen('artist%%3A%%22%s%%24%%22'));
+handlerGen('artist', handlerFuncGen('artist%%3A%%22%s%%24%%22"'));
+handlerGen('g', handlerFuncGen('group%%3A%%22%s%%24%%22"'));
+handlerGen('group', handlerFuncGen('group%%3A%%22%s%%24%%22"'));

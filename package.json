@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "rss-telegram-bot": "^1.1.0"
+    "rss-telegram-bot": "^1.2.1"
   }
 }
