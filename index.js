@@ -1,5 +1,6 @@
 const { bot, rss, user } = require('rss-telegram-bot')
 const config = require('./config')
+const db = require('./database');
 var util = require('util');
 
 async function catInlineKeyboards(tag) {
@@ -39,7 +40,9 @@ function handlerFuncGen(tag_format) {
             return
         }
         let tag_content = match[1];
-        await sendSubscribeTag(msg, match, util.format(tag_format, tag_content))
+        const tag = util.format(tag_format, tag_content);
+        db.putTag(tag);
+        await sendSubscribeTag(msg, match, tag);
     }
 }
 
@@ -79,6 +82,7 @@ async function sendSubscribe(msg, category_id, tag) {
             return;
         }
     }
+    db.delTag(tag);
     bot.sendMessage(chatId, `Subscribed to ${category_title}: ${tag}`, {
         reply_to_message_id: msgId
     });
