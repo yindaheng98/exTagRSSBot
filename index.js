@@ -6,7 +6,15 @@ async function sendSubscribeTag(msg, match) {
     const tag = match[0];
     console.log(match);
 }
-bot.onText(/^a:"([^"\$]+)"$/, sendSubscribeTag);
-bot.onText(/^a:"([^"\$]+)\$"$/, sendSubscribeTag);
-bot.onText(/^a:([^"\$\s]+)$/, sendSubscribeTag);
-bot.onText(/^a:([^"\$\s]+)\$$/, sendSubscribeTag);
+
+function convient(tag_prefix, func) {
+    bot.onText(RegExp(`^${tag_prefix}:"([^"\\$]+)"$`), func);
+    bot.onText(RegExp(`^${tag_prefix}:"([^"\\$]+)\\$"$`), func);
+    bot.onText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)$`), func);
+    bot.onText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)\\$$`), func);
+}
+
+convient('a', sendSubscribeTag);
+convient('artist', sendSubscribeTag);
+convient('g', sendSubscribeTag);
+convient('group', sendSubscribeTag);
