@@ -27,7 +27,8 @@ async function sendSubscribeTag(msg, match, tag) {
     }
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
-    bot.sendMessage(chatId, `${tag}\nPlease select a category to subscribe:`, {
+    bot.sendMessage(chatId, `${tag_link(tag)}\nPlease select a category to subscribe:`, {
+        parse_mode: 'MarkdownV2',
         reply_to_message_id: msgId,
         reply_markup: {
             inline_keyboard: await catInlineKeyboards(tag)
@@ -47,6 +48,11 @@ function handlerFuncGen(tag_format) {
     }
 }
 
+function tag_link(tag) {
+    let tag_in_link = "https://exhentai.org/tag/" + tag.replace(new RegExp('"','g'), '').replace(/\$/, '').replace(/\s/, '+');
+    return `[${tag}](${tag_in_link})`
+}
+
 function handlerGen(tag_prefix, func) {
     bot.onText(RegExp(`^${tag_prefix}:"([^"\\$]+)"$`), func);
     bot.onText(RegExp(`^${tag_prefix}:"([^"\\$]+)\\$"$`), func);
@@ -64,10 +70,11 @@ async function sendUnsubscribe() {
     const tags = await db.getAllTag();
     if (tags.length <= 0) return;
     const tag = tags[Math.floor(Math.random() * tags.length)]; //随机选一个返回
-    const msg = `You have this unsubscribed link:\n${tag}\nPlease select a category to subscribe:`;
+    const msg = `You have this unsubscribed tag:\n${tag_link(tag)}\nPlease select a category to subscribe:`;
     const inline_keyboards = await catInlineKeyboards(tag);
     for (let chatId of user.getChatIds()) {
         bot.sendMessage(chatId, msg, {
+            parse_mode: 'MarkdownV2',
             reply_markup: {
                 inline_keyboard: inline_keyboards
             }
