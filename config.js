@@ -10,6 +10,6 @@ if (config.eh_feed_formats.length <= 0) {
     config.eh_feed_formats = ["https://rsshub.app/ehentai/tag/%s"];
 }
 
-config.unsubscribe_db_path = process.env.EH_UNSUB_DB_PATH || 'db/eh_unsubscribe.json',
+config.eh_unsubscribe_db_path = process.env.EH_UNSUB_DB_PATH || 'db/eh_unsubscribe.json',
 
 module.exports = config

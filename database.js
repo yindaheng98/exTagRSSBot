@@ -5,15 +5,15 @@ const config = require("./config");
 
 let db = {}; //主数据库即索引
 
-fs.mkdirSync(path.dirname(config.unsubscribe_db_path), { recursive: true });
+fs.mkdirSync(path.dirname(config.eh_unsubscribe_db_path), { recursive: true });
 try {
-    db = JSON.parse(fs.readFileSync(config.unsubscribe_db_path));
+    db = JSON.parse(fs.readFileSync(config.eh_unsubscribe_db_path));
 } catch (e) {
     logger.warn("Cannot read database", e);
 }
 
 function write() {
-    return fs.writeFile(config.unsubscribe_db_path, JSON.stringify(db), (err) => {
+    return fs.writeFile(config.eh_unsubscribe_db_path, JSON.stringify(db), (err) => {
         if (err) logger.warn("Cannot write database", err);
     });
 }
