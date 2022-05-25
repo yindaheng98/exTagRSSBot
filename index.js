@@ -81,7 +81,11 @@ async function sendUnsubscribe() {
         });
     }
 }
-schedule.scheduleJob(config.unsubscribe_check_cron, sendUnsubscribe);
+if (config.unsubscribe_check === "cron") {
+    schedule.scheduleJob(config.unsubscribe_check_cron, sendUnsubscribe);
+} else {
+    bot.on('message', sendUnsubscribe);
+}
 
 async function sendSubscribe(msg, category_id, tag) {
     const chatId = msg.chat.id;
