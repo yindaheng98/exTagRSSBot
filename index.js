@@ -3,6 +3,7 @@ const logger = require('rss-telegram-bot/utils/logger');
 const config = require('./config');
 const db = require('./database');
 var util = require('util');
+const { search_cats_title_by_feeds } = require('rss-telegram-bot/utils/search');
 
 async function catInlineKeyboards(tag) {
     const inline_keyboards = [];
@@ -28,7 +29,7 @@ async function sendSubscribeTag(msg, match, tag) {
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
     bot.sendMessage(chatId, `${tag_link(tag)}\nPlease select a category to subscribe:`, {
-        parse_mode: 'MarkdownV2',
+        parse_mode: 'HTML',
         reply_to_message_id: msgId,
         reply_markup: {
             inline_keyboard: await catInlineKeyboards(tag)
@@ -49,8 +50,8 @@ function handlerFuncGen(tag_format) {
 }
 
 function tag_link(tag) {
-    let tag_in_link = "https://exhentai.org/tag/" + tag.replace(new RegExp('"','g'), '').replace(/\$/, '').replace(/\s/, '+');
-    return `[${tag}](${tag_in_link})`
+    let tag_in_link = "https://exhentai.org/tag/" + tag.replace(new RegExp('"', 'g'), '').replace(/\$/, '').replace(/\s/, '+');
+    return `<a href="${tag_in_link}">${tag}</a>`
 }
 
 function handlerGen(tag_prefix, func) {
@@ -65,16 +66,28 @@ handlerGen('artist', handlerFuncGen('artist:"%s$"'));
 handlerGen('g', handlerFuncGen('group:"%s$"'));
 handlerGen('group', handlerFuncGen('group:"%s$"'));
 
+function getEHLink(tag) {
+    let feeds = [];
+    for (let url_format of config.eh_feed_formats) {
+        feeds.push(util.format(url_format, encodeURIComponent(tag)));
+    }
+    return feeds
+}
+
 const schedule = require('node-schedule');
 async function sendUnsubscribe() {
     const tags = await db.getAllTag();
     if (tags.length <= 0) return;
     const tag = tags[Math.floor(Math.random() * tags.length)]; //随机选一个返回
-    const msg = `You have this unsubscribed tag:\n${tag_link(tag)}\nPlease select a category to subscribe:`;
+    let msg = `You have this unsubscribed tag:\n${tag_link(tag)}\nPlease select a category to subscribe:`;
+    let category_ids = await search_cats_title_by_feeds(getEHLink(tag), rss);
+    if (category_ids.length > 0) {
+        msg = `You have this subscribed link in ${category_ids.join(', ')}:\n${tag_link(tag)}\nPlease select a category to update subscription:`;
+    }
     const inline_keyboards = await catInlineKeyboards(tag);
     for (let chatId of user.getChatIds()) {
         bot.sendMessage(chatId, msg, {
-            parse_mode: 'MarkdownV2',
+            parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: inline_keyboards
             }
@@ -91,8 +104,7 @@ async function sendSubscribe(msg, category_id, tag) {
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
     const category_title = await rss.getCategoryTitle(category_id);
-    for (let url_format of config.eh_feed_formats) {
-        const feed_url = util.format(url_format, encodeURIComponent(tag))
+    for (let feed_url of getEHLink(tag)) {
         logger.info(`Subscribing: ${feed_url}`);
         if (('' + category_id) === await rss.isSubscribed(feed_url)) {
             continue;
