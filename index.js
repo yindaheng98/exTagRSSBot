@@ -55,10 +55,10 @@ function tag_link(tag) {
 }
 
 function handlerGen(tag_prefix, func) {
-    bot.onText(RegExp(`^${tag_prefix}:"([^"\\$]+)"$`), func);
-    bot.onText(RegExp(`^${tag_prefix}:"([^"\\$]+)\\$"$`), func);
-    bot.onText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)$`), func);
-    bot.onText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)\\$$`), func);
+    bot.onValidText(RegExp(`^${tag_prefix}:"([^"\\$]+)"$`), func);
+    bot.onValidText(RegExp(`^${tag_prefix}:"([^"\\$]+)\\$"$`), func);
+    bot.onValidText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)$`), func);
+    bot.onValidText(RegExp(`^${tag_prefix}:([^"\\$\\s]+)\\$$`), func);
 }
 
 handlerGen('a', handlerFuncGen('artist:"%s$"'));
