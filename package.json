@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "node-schedule": "^2.1.0",
-    "rss-telegram-bot": "^1.4.0"
+    "rss-telegram-bot": "^1.4.1"
   }
 }
