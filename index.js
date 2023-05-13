@@ -100,6 +100,34 @@ if (config.unsubscribe_check === "cron") {
     bot.on('message', sendUnsubscribe);
 }
 
+async function pongInlineKeyboards() {
+    const inline_keyboards = [];
+    const categories = await rss.getCategories();
+    for (let category_id in categories) {
+        const title = categories[category_id];
+        inline_keyboards.push([{
+            text: title,
+            switch_inline_query_current_chat: `/subscribe_eh ${category_id} `
+        }]);
+    }
+    return inline_keyboards
+}
+async function sendPong() {
+    const tags = await db.getAllTag();
+    let msg = 'No tag saved'
+    if (tags.length > 0)
+        msg = `There are still ${tags.length} saved tags`
+    msg += '\nPlease select a category to start your next subscription'
+    const inline_keyboards = await pongInlineKeyboards();
+    for (let chatId of user.getChatIds()) {
+        bot.sendMessage(chatId, msg, {
+            reply_markup: {
+                inline_keyboard: inline_keyboards
+            }
+        });
+    }
+}
+
 async function sendSubscribe(msg, category_id, tag) {
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
@@ -130,6 +158,7 @@ async function sendSubscribe(msg, category_id, tag) {
         reply_to_message_id: msgId
     });
     sendUnsubscribe();
+    sendPong();
 }
 
 bot.onQuery(/^\/subscribe_eh ([0-9]+) (artist:"[A-Za-z0-9 ]+\$")$/, async (msg, match) => {
@@ -143,19 +172,6 @@ bot.onQuery(/^\/subscribe_eh ([0-9]+) (group:"[A-Za-z0-9 ]+\$")$/, async (msg, m
     const tag = match[2];
     sendSubscribe(msg, category_id, tag);
 });
-
-async function pongInlineKeyboards() {
-    const inline_keyboards = [];
-    const categories = await rss.getCategories();
-    for (let category_id in categories) {
-        const title = categories[category_id];
-        inline_keyboards.push([{
-            text: title,
-            switch_inline_query_current_chat: `/subscribe_eh ${category_id} `
-        }]);
-    }
-    return inline_keyboards
-}
 
 bot.onPing(async (msg) => {
     const chatId = msg.chat.id;
