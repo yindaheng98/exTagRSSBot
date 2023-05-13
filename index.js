@@ -107,7 +107,7 @@ async function pongInlineKeyboards() {
         const title = categories[category_id];
         inline_keyboards.push([{
             text: title,
-            switch_inline_query_current_chat: `/subscribe_eh ${category_id} `
+            switch_inline_query_current_chat: `/subscribe_eh_pong ${category_id} `
         }]);
     }
     return inline_keyboards
@@ -150,6 +150,7 @@ async function sendSubscribe(msg, category_id, tag) {
                 }
             });
             sendUnsubscribe();
+            sendPong();
             return;
         }
     }
@@ -172,6 +173,29 @@ bot.onQuery(/^\/subscribe_eh ([0-9]+) (group:"[A-Za-z0-9 ]+\$")$/, async (msg, m
     const tag = match[2];
     sendSubscribe(msg, category_id, tag);
 });
+
+function handlerGenPong(tag_prefix, func) {
+    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:"([^"\$]+)"$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:"([^"\$]+)\$"$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:([^"\$\s]+)$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:([^"\$\s]+)\$$`), func);
+}
+function handlerFuncGen(tag_format) {
+    return async function (msg, match) {
+        if (match.length <= 1 || match[2] === null || match[2].length <= 0) {
+            return
+        }
+        const category_id = parseInt(match[1]);
+        const tag_content = match[2];
+        const tag = util.format(tag_format, tag_content);
+        db.putTag(tag);
+        await sendSubscribe(msg, category_id, tag);
+    }
+}
+handlerGenPong('a', handlerFuncGen('artist:"%s$"'));
+handlerGenPong('artist', handlerFuncGen('artist:"%s$"'));
+handlerGenPong('g', handlerFuncGen('group:"%s$"'));
+handlerGenPong('group', handlerFuncGen('group:"%s$"'));
 
 bot.onPing(async (msg) => {
     const chatId = msg.chat.id;
