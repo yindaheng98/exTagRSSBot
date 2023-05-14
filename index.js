@@ -132,13 +132,14 @@ async function sendSubscribe(msg, category_id, tag) {
     const chatId = msg.chat.id;
     const msgId = msg.message_id;
     const category_title = await rss.getCategoryTitle(category_id);
+    let ok = true;
     for (let feed_url of getEHLink(tag)) {
         logger.info(`Subscribing: ${feed_url}`);
         if (('' + category_id) === await rss.isSubscribed(feed_url)) {
             continue;
         }
-        const { ok, err } = await rss.subscribeToFeed(category_id, feed_url);
-        if (!ok) {
+        const { _ok, err } = await rss.subscribeToFeed(category_id, feed_url);
+        if (!_ok) {
             const inline_keyboards = [[{
                 text: 'Retry it',
                 switch_inline_query_current_chat: `/subscribe_eh ${category_id} ${tag}`
@@ -149,15 +150,15 @@ async function sendSubscribe(msg, category_id, tag) {
                     inline_keyboard: inline_keyboards
                 }
             });
-            sendUnsubscribe();
-            sendPong();
-            return;
+            ok = false
         }
     }
-    db.delTag(tag);
-    bot.sendMessage(chatId, `Subscribed to ${category_title}: ${tag}`, {
-        reply_to_message_id: msgId
-    });
+    if (ok) {
+        db.delTag(tag);
+        bot.sendMessage(chatId, `Subscribed to ${category_title}: ${tag}`, {
+            reply_to_message_id: msgId
+        });
+    }
     sendUnsubscribe();
     sendPong();
 }
@@ -175,10 +176,10 @@ bot.onQuery(/^\/subscribe_eh ([0-9]+) (group:"[A-Za-z0-9 ]+\$")$/, async (msg, m
 });
 
 function handlerGenPong(tag_prefix, func) {
-    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:"([^"\$]+)"$`), func);
-    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:"([^"\$]+)\$"$`), func);
-    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:([^"\$\s]+)$`), func);
-    bot.onQuery(RegExp(`^/subscribe_eh_pong ([0-9]+) ${tag_prefix}:([^"\$\s]+)\$$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong[ ]+([0-9]+)[ ]+${tag_prefix}:"([^"$]+)"$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong[ ]+([0-9]+)[ ]+${tag_prefix}:"([^"$]+)[$]"$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong[ ]+([0-9]+)[ ]+${tag_prefix}:([^"$]+)$`), func);
+    bot.onQuery(RegExp(`^/subscribe_eh_pong[ ]+([0-9]+)[ ]+${tag_prefix}:([^"$]+)[$]$`), func);
 }
 function handlerFuncGen(tag_format) {
     return async function (msg, match) {
