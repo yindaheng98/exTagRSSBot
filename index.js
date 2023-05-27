@@ -22,6 +22,11 @@ async function catInlineKeyboards(tag) {
     return inline_keyboards
 }
 
+function tag_link(tag) {
+    let tag_in_link = "https://exhentai.org/tag/" + tag.replace(new RegExp('"', 'g'), '').replace(/\$/, '').replace(/\s/, '+');
+    return `<a href="${tag_in_link}">${tag}</a>`
+}
+
 async function sendSubscribeTag(msg, match, tag) {
     if (match.length <= 0 || match[1] === null || match[1].length <= 0) {
         return
@@ -48,11 +53,6 @@ function handlerFuncGen(tag_format) {
     }
 }
 
-function tag_link(tag) {
-    let tag_in_link = "https://exhentai.org/tag/" + tag.replace(new RegExp('"', 'g'), '').replace(/\$/, '').replace(/\s/, '+');
-    return `<a href="${tag_in_link}">${tag}</a>`
-}
-
 function handlerGen(tag_prefix, func) {
     bot.onValidText(RegExp(`^${tag_prefix}:"([^"\\$]+)"$`), func);
     bot.onValidText(RegExp(`^${tag_prefix}:"([^"\\$]+)\\$"$`), func);
@@ -64,6 +64,34 @@ handlerGen('a', handlerFuncGen('artist:"%s$"'));
 handlerGen('artist', handlerFuncGen('artist:"%s$"'));
 handlerGen('g', handlerFuncGen('group:"%s$"'));
 handlerGen('group', handlerFuncGen('group:"%s$"'));
+
+function unparseFuncGen(tag_format) {
+    return async function (msg, match) {
+        if (match.length <= 0 || match[1] === null || match[1].length <= 0) {
+            return
+        }
+        const chatId = msg.chat.id;
+        const msgId = msg.message_id;
+        const tag_content = match[1];
+        const tag = util.format(tag_format, tag_content);
+        db.delTag(tag);
+        bot.sendMessage(chatId, `Canceled: ${tag}`, {
+            reply_to_message_id: msgId
+        });
+    }
+}
+
+function unparseGen(tag_prefix, func) {
+    bot.onQuery(RegExp(`^/unparse_eh ${tag_prefix}:"([^"\\$]+)"$`), func);
+    bot.onQuery(RegExp(`^/unparse_eh ${tag_prefix}:"([^"\\$]+)\\$"$`), func);
+    bot.onQuery(RegExp(`^/unparse_eh ${tag_prefix}:([^"\\$\\s]+)$`), func);
+    bot.onQuery(RegExp(`^/unparse_eh ${tag_prefix}:([^"\\$\\s]+)\\$$`), func);
+}
+
+unparseGen('a', unparseFuncGen('artist:"%s$"'));
+unparseGen('artist', unparseFuncGen('artist:"%s$"'));
+unparseGen('g', unparseFuncGen('group:"%s$"'));
+unparseGen('group', unparseFuncGen('group:"%s$"'));
 
 function getEHLink(tag) {
     let feeds = [];
