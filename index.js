@@ -137,7 +137,9 @@ async function sendSubscribe(msg, category_id, tag) {
         if (('' + category_id) === await rss.isSubscribed(feed_url)) {
             continue;
         }
-        const { _ok, err } = await rss.subscribeToFeed(category_id, feed_url);
+        const res = await rss.subscribeToFeed(category_id, feed_url);
+        const _ok = res.ok
+        const err = res.err
         if (!_ok) {
             const inline_keyboards = [[{
                 text: 'Retry it',
