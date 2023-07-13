@@ -75,9 +75,7 @@ function unparseFuncGen(tag_format) {
         const tag_content = match[1];
         const tag = util.format(tag_format, tag_content);
         db.delTag(tag);
-        bot.sendMessage(chatId, `Canceled: ${tag}`, {
-            reply_to_message_id: msgId
-        });
+        bot.sendDeleteMessage(chatId, msgId, `Canceled: ${tag}`);
     }
 }
 
