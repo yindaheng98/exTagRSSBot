@@ -1,7 +1,7 @@
 {
     "name": "RSSBot Dev Container",
     "dockerComposeFile": "docker-compose.yml",
-    "service": "exrssbot",
+    "service": "rssbot",
     "workspaceFolder": "/app",
     "shutdownAction": "stopCompose",
     "extensions": [

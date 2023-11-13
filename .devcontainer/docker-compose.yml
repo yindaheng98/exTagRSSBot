@@ -1,8 +1,8 @@
 version: "3.8"
 
 services:
-  exrssbot:
-    image: exrssbot:latest
+  rssbot:
+    image: rssbot:latest
     build:
       context: ..
       dockerfile: ./Dockerfile
@@ -12,3 +12,5 @@ services:
       - ../:/app
     working_dir: /app
     command: /bin/sh
+    env_file:
+    - dev.env
