@@ -100,7 +100,8 @@ function getEHLink(tag) {
 }
 
 const schedule = require('node-schedule');
-async function sendUnsubscribe() {
+const current_unsubscribe_msgs = {};
+async function sendUnsubscribe(record = false) {
     const tags = await db.getAllTag();
     if (tags.length <= 0) return;
     const tag = tags[Math.floor(Math.random() * tags.length)]; //随机选一个返回
@@ -111,18 +112,28 @@ async function sendUnsubscribe() {
     }
     const inline_keyboards = await catInlineKeyboards(tag);
     for (let chatId of user.getChatIds()) {
-        bot.sendMessage(chatId, msg, {
+        let sent = await bot.sendMessage(chatId, msg, {
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: inline_keyboards
             }
         });
+        if (record) current_unsubscribe_msgs[chatId] = sent;
     }
 }
+async function editUnsubscribe() {
+    for (let chatId of user.getChatIds()) {
+        if (!current_unsubscribe_msgs[chatId]) continue;
+        let msg = current_unsubscribe_msgs[chatId];
+        await bot.deleteMessage(chatId, msg.message_id);
+        delete current_unsubscribe_msgs[chatId];
+    }
+    sendUnsubscribe(true);
+}
 if (config.unsubscribe_check === "cron") {
-    schedule.scheduleJob(config.unsubscribe_check_cron, sendUnsubscribe);
+    schedule.scheduleJob(config.unsubscribe_check_cron, editUnsubscribe);
 } else {
-    bot.on('message', sendUnsubscribe);
+    bot.on('message', editUnsubscribe);
 }
 
 async function pongInlineKeyboards() {
