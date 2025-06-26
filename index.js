@@ -199,13 +199,13 @@ async function sendSubscribe(msg, category_id, tag) {
     sendPong();
 }
 
-bot.onQuery(/^\/subscribe_eh ([0-9]+) (artist:"[A-Za-z0-9 ]+\$")$/, async (msg, match) => {
+bot.onQuery(/^\/subscribe_eh ([0-9]+) (artist:"[A-Za-z0-9-. ]+\$")$/, async (msg, match) => {
     const category_id = parseInt(match[1]);
     const tag = match[2];
     sendSubscribe(msg, category_id, tag);
 });
 
-bot.onQuery(/^\/subscribe_eh ([0-9]+) (group:"[A-Za-z0-9 ]+\$")$/, async (msg, match) => {
+bot.onQuery(/^\/subscribe_eh ([0-9]+) (group:"[A-Za-z0-9-. ]+\$")$/, async (msg, match) => {
     const category_id = parseInt(match[1]);
     const tag = match[2];
     sendSubscribe(msg, category_id, tag);
